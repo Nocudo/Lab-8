@@ -146,7 +146,33 @@ El sensor fotoeléctrico  BMS2M-MDT ejerce la función de contador maestro del s
     \label{fig:principio_foto}
 \end{figure}
 
-donde $I$ representa la intensidad luminosa final que llega al receptor, $I_0$ es la intensidad emitida, $\alpha$ es el coeficiente de atenuación del obstáculo y $x$ es el espesor del material \cite{sensores_17}. Para asegurar un conteo preciso sin falsos positivos, la Figura \ref{fig:respuesta_foto} expone la curva característica del área de sensado en función de la distancia de detección. Esta gráfica delimita un perfil espacial de forma parabólica que define la zona de operación óptica estable, fuera de la cual el sensor ignora perturbaciones \cite{sensores_15}.
+donde $I$ representa la intensidad luminosa final que llega al receptor, $I_0$ es la intensidad emitida, $\alpha$ es el coeficiente de atenuación del obstáculo y $x$ es el espesor del material \cite{sensores_17}. 
+
+En la Fig. \ref{fig:bloques_fotoelectrico} se detalla la arquitectura circuital interna del dispositivo, la cual comprende desde la generación del pulso óptico sincronizado hasta el acoplamiento final de la señal analógica acondicionada a través de una etapa de conmutación de estado sólido.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[node distance=0.7cm, auto]
+        % Bloques
+        \node (osc) [process] {Oscilador / Modulador\\(Luz Infrarroja)};
+        \node (emit) [process, below = of osc] {LED Emisor\\(Haz de Luz)};
+        \node (rec) [process, below = of emit] {Fototransistor\\Receptor};
+        \node (amp) [process, below= of rec] {Filtro y Amplificador\\(Sincrónico)};
+        \node (comp) [process, below = of amp] {Comparador\\con Histéresis};
+        \node (out) [process, below = of comp] {Salida NPN\\(Colector Abierto)};
+        
+        % Flechas
+        \draw [arrow] (osc) -- (emit);
+        \draw [dashed, ->, >=Stealth] (emit) -- node[right]{Haz óptico} (rec);
+        \draw [arrow] (rec) -- (amp);
+        \draw [arrow] (amp) -- (comp);
+        \draw [arrow] (comp) -- (out);
+    \end{tikzpicture}
+    \caption{Diagrama de bloques de la arquitectura interna del sensor fotoeléctrico BMS2M-MDT.}
+    \label{fig:bloques_fotoelectrico}
+\end{figure}
+
+Una de las variables críticas en el diseño mecánico de la banda de tránsito es la dispersión geométrica del haz de luz emitido. Con el propósito de evaluar la tolerancia de descentrado de los objetos rígidos conforme se desplazan en el espacio de trabajo, la Fig. \ref{fig:respuesta_foto} exhibe el diagrama operativo del área de detección efectiva. Esta envolvente delimita la frontera espacial en la cual la atenuación óptica es capturada de forma fidedigna por el fototransistor receptor, definiendo el rango útil de operación del instrumento.
 
 \begin{figure}[htbp]
     \centering
@@ -166,6 +192,7 @@ Por su parte, el sensor inductivo PR12-4DN se implementa para la discriminación
 \begin{equation}
     L = \frac{N^2}{\mathcal{R}}
 \end{equation}
+
 
 \begin{figure}[htbp]
     \centering
@@ -202,7 +229,31 @@ Por su parte, el sensor inductivo PR12-4DN se implementa para la discriminación
     \label{fig:principio_inductivo}
 \end{figure}
 
-siendo $N$ el numero de espiras de la bobina y $\mathcal{R}$ la reluctancia del circuito magnético \cite{sensores_4}. La Figura \ref{fig:respuesta_inductivo} describe la relación directa entre el tamaño del objeto metálico y la distancia de detección relativa ($S_r$). Como se evidencia en la curva exponencial, para lograr el cien por ciento de la distancia nominal de sensado, el objeto metálico debe alcanzar un tamaño o área frontal especifica; objetos mas pequeños reducirán la capacidad de detección \cite{sensores_8}.
+siendo $N$ el numero de espiras de la bobina y $\mathcal{R}$ la reluctancia del circuito magnético \cite{sensores_4}. 
+
+La Fig. \ref{fig:bloques_inductivo} describe el flujo lógico de las etapas internas del hardware, donde las variaciones en la amplitud de oscilación causadas por la cercanía de un metal son procesadas por un detector y rectificadas mediante un circuito de disparo Schmitt de histéresis definida \cite{sensores_7}.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[node distance=0.7cm, auto]
+        % Bloques
+        \node (osc) [process] {Oscilador LC\\(Campo Magnético HF)};
+        \node (coil) [process, above = of osc] {Bobina de Sensado\\(Núcleo de Ferrita)};
+        \node (det) [process, below = of osc] {Detector de Amplitud\\(Rectificador / Filtro)};
+        \node (comp) [process, below = of det] {Gatillo Schimitt\\(Ajuste de Histéresis)};
+        \node (out) [process, below = of comp] {Salida Digital NPN\\(Colector Abierto)};
+        
+        % Flechas
+        \draw [<->, thick] (osc) -- (coil);
+        \draw [arrow] (osc) -- node[right]{Vpp} (det);
+        \draw [arrow] (det) -- (comp);
+        \draw [arrow] (comp) -- (out);
+    \end{tikzpicture}
+    \caption{Diagrama de bloques del principio de operación del sensor inductivo PR12-4DN.}
+    \label{fig:bloques_inductivo}
+\end{figure}
+
+El desempeño dinámico del sensor inductivo está fuertemente condicionado por la geometría y masa del elemento bajo análisis. Con el fin de parametrizar este fenómeno físico, la Fig. \ref{fig:respuesta_inductivo} ilustra la curva característica de respuesta no lineal que relaciona el tamaño normalizado del objeto metálico frente al alcance real de detección ($S_r$). Como se evidencia en el comportamiento asintótico, existe una zona de saturación electromagnética donde el incremento en el área del material deja de aportar densidad de flujo al acoplamiento inductivo, estabilizándose en la distancia nominal ($S_n$) \cite{sensores_8}.
 
 \begin{figure}[htbp]
     \centering
@@ -255,7 +306,33 @@ Finalmente, el sensor capacitivo CR18-8DN actúa como un instrumento de control 
     \label{fig:principio_capacitivo}
 \end{figure}
 
-donde $\varepsilon_0$ es la permitividad del vacío, $\varepsilon_r$ la permitividad relativa del material interactuando con el campo, $A$ el área de los electrodos y $d$ la distancia de separación \cite{sensores_6}. La Figura \ref{fig:respuesta_capacitivo} ilustra la curva caracteristica que vincula la constante dieléctrica del material con la distancia de detección relativa ($S_r$). Se observa que un material con alta permitividad (como el agua) incrementa la distancia efectiva, lo que permite calibrar el umbral del sensor para que conmute unicamente al detectar el liquido y permanezca inactivo ante un envase vacío \cite{sensores_18, sensores_20}.
+donde $\varepsilon_0$ es la permitividad del vacío, $\varepsilon_r$ la permitividad relativa del material interactuando con el campo, $A$ el área de los electrodos y $d$ la distancia de separación \cite{sensores_6}. 
+
+El acoplamiento de hardware, detallado en la Fig. \ref{fig:bloques_capacitivo}, muestra cómo la capacidad mutua del entorno interactúa con la red RC del oscilador interno, modificando su frecuencia en función de la permitividad circundante.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[node distance=0.7cm]
+        % Bloques
+        \node (elec) [process] {Electrodos Frontales\\(Placas de Capacitor)};
+        \node (osc) [process, right = of elec] {Circuito Oscilador RC\\(Amplitud var. por $C_x$)};
+        \node (pot) [process, above = of osc] {Potenciómetro\\(Ajuste de Sensibilidad)};
+        \node (det) [process, below = of osc] {Demodulador y\\Filtrado de Señal};
+        \node (comp) [process, below = of det] {Comparador\\Tríger Schmitt};
+        \node (out) [process, below = of comp] {Salida Conmutada\\NPN (NA)};
+        
+        % Flechas
+        \draw [arrow] (elec) -- node[above]{$C_x$} (osc);
+        \draw [arrow] (pot) -- node[right]{ Umbral} (osc);
+        \draw [arrow] (osc) -- (det);
+        \draw [arrow] (det) -- (comp);
+        \draw [arrow] (comp) -- (out);
+    \end{tikzpicture}
+    \caption{Diagrama de bloques estructural de la circuitería interna del sensor capacitivo CR18-8DN.}
+    \label{fig:bloques_capacitivo}
+\end{figure}
+
+La capacidad de discriminación del sensor CR18-8DN está supeditada directamente a la permitividad relativa del medio que interrumpe sus líneas de campo. En la Fig. \ref{fig:respuesta_capacitivo} se presenta la respuesta del transductor en función de la constante dieléctrica ($\epsilon_r$) del material. El perfil de la curva justifica empíricamente la selectividad del sistema ante fluidos polares como el agua líquida ($\epsilon_r \approx 80$) frente a polímeros de baja permitividad eléctrica como el polietileno de los envases vacíos ($\epsilon_r \approx 2.3$), permitiendo establecer un umbral de calibración óptimo \cite{sensores_18, sensores_20}.
 
 \begin{figure}[htbp]
     \centering
